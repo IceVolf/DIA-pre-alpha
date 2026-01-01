@@ -1,0 +1,32 @@
+{
+  "navItems": [
+    { "id": "news", "label": "Новини" },
+    { "id": "documents", "label": "Документи" },
+    { "id": "services", "label": "Послуги" },
+    { "id": "menu", "label": "Меню" }
+  ],
+  "documentsText": "Це основний текст сторінки Документи. Натисніть \"Меню → Допомога\", щоб редагувати цей документ.",
+  "profile": {
+    "fullname": "Стивен Стивенко Тестович",
+    "photo": "https://via.placeholder.com/120x150.png?text=Фото",
+    "dob": "1999-06-16",
+    "passport": "3784907156"
+  },
+  "qr": {
+    "content": "https://example.com"
+  },
+  "admins": [
+    "304197017"
+  ],
+  "news": {
+    "news": [
+      {
+        "id": "i1",
+        "title": "Ласкаво просимо",
+        "body": "Ласкаво просимо у вкладку Новини."
+      }
+    ],
+    "underDevelopment": []
+  },
+  "services": []
+}
