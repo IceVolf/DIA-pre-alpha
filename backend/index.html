@@ -3,498 +3,410 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-  <title>Mini Telegram — Документи</title>
+  <title>Mini Telegram — Documents</title>
   <style>
-    :root{
-      --primary:#0b84ff;
-      --muted:#6b7280;
-      --card:#fff;
-      --bg:#f6f7f9;
-      --nav-bg: #020202;
-      --nav-height:72px;
-    }
-    *{box-sizing:border-box}
-    html,body{height:100%; margin:0; padding:0; background:var(--bg); color:#111; font-family:Inter,system-ui,Arial; -webkit-font-smoothing:antialiased;}
-    /* App frame: center a narrow column on desktop (like mobile UI in screenshot) */
-    .app-wrap{
-      min-height:100vh;
-      display:flex;
-      align-items:flex-start;
-      justify-content:center;
-      padding:24px 16px calc(var(--nav-height) + 32px); /* leave space for bottom nav */
-    }
-    .container{
-      width:100%;
-      max-width:420px; /* central narrow column for desktop */
-    }
-    header{ margin-bottom:12px; }
-    header h1{ margin:0; font-size:18px; font-weight:700; }
-    .card{ background:var(--card); border-radius:12px; padding:14px; box-shadow:0 8px 24px rgba(0,0,0,0.08); }
-    .row{ display:flex; gap:12px; align-items:flex-start; }
+    /* Minimal styles for the demo — adjust to your existing site */
+    :root{ --primary:#0b84ff; --muted:#6b7280; --card:#fff; --bg:#f6f7f9 }
+    body{ margin:0; font-family:Inter,system-ui,Arial; background:var(--bg); color:#111; -webkit-font-smoothing:antialiased;}
+    .container{ max-width:820px; margin:18px auto; padding:18px; }
+    header h1{ margin:0 0 12px; font-size:20px; }
+    .card{ background:var(--card); border-radius:12px; padding:14px; box-shadow:0 6px 18px rgba(0,0,0,0.06); }
+    .row{ display:flex; gap:12px; align-items:start; }
     .avatar{ width:120px; height:150px; background:#eee; border-radius:8px; overflow:hidden; display:flex; align-items:center; justify-content:center;}
     .avatar img{ width:100%; height:100%; object-fit:cover; }
     label{ display:block; margin-top:8px; font-size:13px; color:var(--muted); }
     input[type="text"], input[type="date"], textarea { width:100%; padding:8px; border-radius:8px; border:1px solid #e6e6e6; margin-top:6px; font-size:14px; }
-    .btn{ display:inline-block; padding:10px 14px; border-radius:10px; background:var(--primary); color:white; border:0; cursor:pointer; font-weight:700; margin-top:10px; }
-    .btn.secondary{ background:#e6e6e6; color:#111; }
+    .btn{ display:inline-block; padding:8px 12px; border-radius:8px; background:var(--primary); color:white; border:0; cursor:pointer; font-weight:700; margin-top:10px; }
+    .btn.secondary{ background:#ddd; color:#111; }
     .notice{ color:#b0413e; margin:12px 0; }
     .small{ font-size:13px; color:var(--muted); }
     .qr-preview{ width:160px; height:160px; background:#fff; border-radius:8px; display:flex; align-items:center; justify-content:center; border:1px solid #eee; overflow:hidden; }
     .flex{ display:flex; gap:12px; align-items:center; }
     .spaced{ margin-top:12px; }
-
-    /* bottom navigation (always visible, styled like phone bottom bar) */
-    .bottom-nav{
-      position:fixed;
-      left:0;
-      right:0;
-      bottom:0;
-      height:var(--nav-height);
-      background:var(--nav-bg);
-      display:flex;
-      justify-content:space-around;
-      align-items:center;
-      gap:10px;
-      z-index:1200;
-      padding-bottom:env(safe-area-inset-bottom);
-      box-shadow:0 -6px 14px rgba(0,0,0,0.4);
-    }
-    .nav-btn{
-      color:rgba(255,255,255,0.9);
-      background:transparent;
-      border:0;
-      padding:8px 10px;
-      font-size:13px;
-      display:flex;
-      flex-direction:column;
-      align-items:center;
-      gap:4px;
-      cursor:pointer;
-      border-radius:10px;
-      min-width:74px;
-    }
-    .nav-btn .label{ font-weight:700; font-size:13px; }
-    .nav-btn.active{
-      background:var(--primary);
-      color:white;
-      box-shadow:0 6px 18px rgba(11,132,255,0.18);
-    }
-
-    /* small footer under nav (bot handle) */
-    .bot-footer{
-      position:fixed;
-      left:0;
-      right:0;
-      bottom:calc(var(--nav-height) + 0px);
-      height:36px;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      color:#fff;
-      font-size:13px;
-      z-index:1100;
-      pointer-events:none;
-    }
-
-    /* Editor panel & QR modal same as before */
-    #editor{ display:none; margin-top:12px; }
-    #qr-modal{ display:none; position:fixed; inset:0; background:rgba(0,0,0,0.9); align-items:center; justify-content:center; z-index:9999; }
-
-    /* Desktop: make the card a bit wider and centered inside container */
-    @media (min-width:900px){
-      .app-wrap{ align-items:flex-start; padding-top:36px; }
-      .container{ max-width:420px; }
-    }
   </style>
 </head>
 <body>
-  <div class="app-wrap">
-    <div class="container">
-      <header><h1>Документи</h1></header>
+  <div class="container">
+    <header><h1>Документи</h1></header>
 
-      <div id="error" class="notice" style="display:none">Run from Telegram.</div>
+    <div id="error" class="notice" style="display:none">Run from Telegram.</div>
 
-      <section id="main-ui" style="display:none">
-        <div class="card" id="doc-card">
-          <div class="row">
-            <div class="avatar">
-              <img id="photo-preview" src="https://via.placeholder.com/120x150?text=Фото" alt="Фото">
-            </div>
-
-            <div style="flex:1">
-              <div class="small">Дата народження:</div>
-              <div id="dob-text" style="font-weight:700">—</div>
-
-              <div style="height:8px"></div>
-
-              <div class="small">Паспорт:</div>
-              <div id="passport-text" style="font-weight:700">—</div>
-            </div>
+    <section id="main-ui" style="display:none">
+      <div class="card" id="doc-card">
+        <div class="row">
+          <div class="avatar">
+            <img id="photo-preview" src="https://via.placeholder.com/120x150?text=Фото" alt="Фото">
           </div>
 
-          <div class="spaced">
-            <div class="small">Ім'я</div>
-            <h2 id="fullname-text" style="margin:6px 0 0">—</h2>
-          </div>
+          <div style="flex:1">
+            <div class="small">Дата народження:</div>
+            <div id="dob-text" style="font-weight:700">—</div>
 
-          <div class="spaced">
-            <button id="open-editor" class="btn">Редагувати документ</button>
-            <button id="open-qr" class="btn secondary" style="margin-left:8px">Показати QR</button>
+            <div style="height:8px"></div>
+
+            <div class="small">Паспорт:</div>
+            <div id="passport-text" style="font-weight:700">—</div>
           </div>
         </div>
 
-        <div id="editor" style="display:none">
-          <div class="card" style="margin-top:12px">
-            <h3>Редагувати дані</h3>
-
-            <label>Завантажити фото</label>
-            <input id="photo-input" type="file" accept="image/*" />
-
-            <label>Повне ім'я</label>
-            <input id="fullname-input" type="text" placeholder="Прізвище Ім'я По батькові" />
-
-            <label>Дата народження</label>
-            <input id="dob-input" type="date" />
-
-            <label>Номер паспорта</label>
-            <input id="passport-input" type="text" placeholder="123456789" />
-
-            <hr style="margin-top:12px"/>
-
-            <label>QR: текст/URL (або завантажити фото QR)</label>
-            <input id="qr-text-input" type="text" placeholder="https://..." />
-            <div class="flex spaced">
-              <input id="qr-upload" type="file" accept="image/*" />
-              <button id="generate-qr-from-data" class="btn secondary">Згенерувати QR з даних</button>
-            </div>
-
-            <div style="margin-top:12px">
-              <div class="small">Попередній перегляд QR</div>
-              <div class="qr-preview" style="margin-top:8px">
-                <img id="qr-preview" src="" style="max-width:100%; max-height:100%; object-fit:contain" alt="QR preview">
-              </div>
-            </div>
-
-            <div style="margin-top:12px">
-              <button id="save-btn" class="btn">Зберегти</button>
-              <button id="cancel-btn" class="btn secondary">Скасувати</button>
-            </div>
-          </div>
+        <div class="spaced">
+          <div class="small">Ім'я</div>
+          <h2 id="fullname-text" style="margin:6px 0 0">—</h2>
         </div>
 
-      </section>
-    </div>
+        <div class="spaced">
+          <button id="open-editor" class="btn">Редагувати документ</button>
+          <button id="open-qr" class="btn secondary" style="margin-left:8px">Показати QR</button>
+        </div>
+      </div>
+
+      <div style="height:18px"></div>
+
+      <!-- Editor modal (simple in-page panel) -->
+      <div id="editor" style="display:none">
+        <div class="card">
+          <h3>Редагувати дані</h3>
+
+          <label>Завантажити фото</label>
+          <input id="photo-input" type="file" accept="image/*" />
+
+          <label>Повне ім'я</label>
+          <input id="fullname-input" type="text" placeholder="Прізвище Ім'я По батькові" />
+
+          <label>Дата народження</label>
+          <input id="dob-input" type="date" />
+
+          <label>Номер паспорта</label>
+          <input id="passport-input" type="text" placeholder="123456789" />
+
+          <hr style="margin-top:12px"/>
+
+          <label>QR: текст/URL (або завантажити фото QR)</label>
+          <input id="qr-text-input" type="text" placeholder="https://..." />
+          <div class="flex spaced">
+            <input id="qr-upload" type="file" accept="image/*" />
+            <button id="generate-qr-from-data" class="btn secondary">Згенерувати QR з даних</button>
+          </div>
+
+          <div style="margin-top:12px">
+            <div class="small">Попередній перегляд QR</div>
+            <div class="qr-preview" style="margin-top:8px">
+              <img id="qr-preview" src="" style="max-width:100%; max-height:100%; object-fit:contain" alt="QR preview">
+            </div>
+          </div>
+
+          <div style="margin-top:12px">
+            <button id="save-btn" class="btn">Зберегти</button>
+            <button id="cancel-btn" class="btn secondary">Скасувати</button>
+          </div>
+        </div>
+      </div>
+
+      <div style="height:10px"></div>
+
+      <!-- QR fullscreen modal -->
+      <div id="qr-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.9); align-items:center; justify-content:center; z-index:9999;">
+        <div style="position:relative; width:100%; max-width:920px; padding:24px">
+          <button id="qr-close" class="btn secondary" style="position:absolute; right:18px; top:18px; z-index:1010">Закрити</button>
+          <img id="qr-fullscreen" src="" alt="QR large" style="width:100%; height:auto; max-height:calc(100vh - 120px); object-fit:contain; display:block; margin:0 auto; border-radius:12px; background:#fff" />
+        </div>
+      </div>
+
+    </section>
   </div>
 
-  <!-- bottom nav and footer -->
-  <nav class="bottom-nav" id="bottom-nav">
-    <button class="nav-btn" data-target="news"><span class="label">Стрічка</span></button>
-    <button class="nav-btn active" data-target="documents"><span class="label">Документи</span></button>
-    <button class="nav-btn" data-target="services"><span class="label">Послуги</span></button>
-    <button class="nav-btn" data-target="menu"><span class="label">Меню</span></button>
-  </nav>
-  <div class="bot-footer">@diia_gov_uabot</div>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<script>
+/*
+  Frontend logic:
+  - Read Telegram.WebApp.initDataUnsafe.user and Telegram.WebApp.initData
+  - If no user -> show "Run from Telegram."
+  - On load -> GET /api/user-data?userId=... with header X-Init-Data: initData
+  - Fill form
+  - On Save -> collect fields, convert files to base64, POST /api/save-data with JSON body { userId, photos, texts }
+    - Send initData in header X-Init-Data
+*/
 
-  <div id="qr-modal" style="display:none">
-    <div style="position:relative; width:100%; max-width:920px; padding:24px; margin: 0 auto;">
-      <button id="qr-close" class="btn secondary" style="position:absolute; right:18px; top:18px; z-index:1010">Закрити</button>
-      <img id="qr-fullscreen" src="" alt="QR large" style="width:100%; height:auto; max-height:calc(100vh - 120px); object-fit:contain; display:block; margin:0 auto; border-radius:12px; background:#fff" />
-    </div>
-  </div>
+(async function(){
+  const API_BASE = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') ? 'http://localhost:4000' : 'https://YOUR_BACKEND_URL';
+  // Replace YOUR_BACKEND_URL with your deployed backend origin (or use env)
+  // Required DOM elements
+  const errEl = document.getElementById('error');
+  const mainUi = document.getElementById('main-ui');
 
-  <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  <script>
-  (async function(){
-    // Backend origin - change to your backend URL when deployed
-    const API_BASE = (location.hostname === 'localhost' || location.hostname === '127.0.0.1') ? 'http://localhost:4000' : 'https://YOUR_BACKEND_URL';
+  const openEditorBtn = document.getElementById('open-editor');
+  const openQrBtn = document.getElementById('open-qr');
+  const editorPanel = document.getElementById('editor');
+  const photoInput = document.getElementById('photo-input');
+  const fullnameInput = document.getElementById('fullname-input');
+  const dobInput = document.getElementById('dob-input');
+  const passportInput = document.getElementById('passport-input');
+  const qrTextInput = document.getElementById('qr-text-input');
+  const qrUpload = document.getElementById('qr-upload');
+  const qrPreview = document.getElementById('qr-preview');
+  const generateQrBtn = document.getElementById('generate-qr-from-data');
+  const saveBtn = document.getElementById('save-btn');
+  const cancelBtn = document.getElementById('cancel-btn');
 
-    // DOM
-    const errEl = document.getElementById('error');
-    const mainUi = document.getElementById('main-ui');
+  const photoPreview = document.getElementById('photo-preview');
+  const fullnameText = document.getElementById('fullname-text');
+  const dobText = document.getElementById('dob-text');
+  const passportText = document.getElementById('passport-text');
 
-    const openEditorBtn = document.getElementById('open-editor');
-    const openQrBtn = document.getElementById('open-qr');
-    const editorPanel = document.getElementById('editor');
-    const photoInput = document.getElementById('photo-input');
-    const fullnameInput = document.getElementById('fullname-input');
-    const dobInput = document.getElementById('dob-input');
-    const passportInput = document.getElementById('passport-input');
-    const qrTextInput = document.getElementById('qr-text-input');
-    const qrUpload = document.getElementById('qr-upload');
-    const qrPreview = document.getElementById('qr-preview');
-    const generateQrBtn = document.getElementById('generate-qr-from-data');
-    const saveBtn = document.getElementById('save-btn');
-    const cancelBtn = document.getElementById('cancel-btn');
+  const qrModal = document.getElementById('qr-modal');
+  const qrFullscreenImg = document.getElementById('qr-fullscreen');
+  const qrCloseBtn = document.getElementById('qr-close');
 
-    const photoPreview = document.getElementById('photo-preview');
-    const fullnameText = document.getElementById('fullname-text');
-    const dobText = document.getElementById('dob-text');
-    const passportText = document.getElementById('passport-text');
+  // Telegram WebApp initialization
+  if(!window.Telegram || !window.Telegram.WebApp){
+    // Not running inside Telegram
+    errEl.style.display = 'block';
+    errEl.textContent = 'Run from Telegram.';
+    return;
+  }
 
-    const qrModalWrap = document.getElementById('qr-modal');
-    const qrFullscreenImg = document.getElementById('qr-fullscreen');
-    const qrCloseBtn = document.getElementById('qr-close');
+  const WebApp = window.Telegram.WebApp;
+  // raw initData (to send to server for verification)
+  const initData = WebApp.initData || '';
+  // initDataUnsafe gives parsed user (not verified); still required by requirement
+  const userUnsafe = WebApp.initDataUnsafe && WebApp.initDataUnsafe.user;
+  const userId = userUnsafe && userUnsafe.id;
 
-    // bottom nav
-    const navBtns = Array.from(document.querySelectorAll('.nav-btn'));
-    navBtns.forEach(b => b.addEventListener('click', ()=>{
-      navBtns.forEach(x => x.classList.remove('active'));
-      b.classList.add('active');
-      // simple behavior: focus documents when clicked, you can wire other sections later
-      const target = b.dataset.target;
-      if(target === 'documents'){
-        // scroll to top of container
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-      } else if(target === 'menu'){
-        // open editor as a quick stand-in for Menu -> Help
-        editorPanel.style.display = '';
-        window.scrollTo({ top: editorPanel.offsetTop - 30, behavior: 'smooth' });
-      } else {
-        // no-op for now; keep UI-only change
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-      }
-    }));
+  if(!userId){
+    errEl.style.display = 'block';
+    errEl.textContent = 'Run from Telegram.';
+    return;
+  }
 
-    // Telegram
-    if(!window.Telegram || !window.Telegram.WebApp){
-      errEl.style.display = 'block';
-      errEl.textContent = 'Run from Telegram.';
-      return;
+  // show UI
+  mainUi.style.display = '';
+
+  // helper: fetch JSON with initData header
+  async function apiFetch(path, opt = {}){
+    const headers = Object.assign({'Content-Type':'application/json', 'X-Init-Data': initData}, opt.headers || {});
+    const res = await fetch(API_BASE + path, Object.assign({}, opt, { headers }));
+    if(!res.ok){
+      const txt = await res.text();
+      throw new Error('API error ' + res.status + ': ' + txt);
     }
+    return res.json();
+  }
 
-    const WebApp = window.Telegram.WebApp;
-    const initData = WebApp.initData || '';
-    const userUnsafe = WebApp.initDataUnsafe && WebApp.initDataUnsafe.user;
-    const userId = userUnsafe && userUnsafe.id;
-
-    if(!userId){
-      errEl.style.display = 'block';
-      errEl.textContent = 'Run from Telegram.';
-      return;
-    }
-
-    mainUi.style.display = '';
-
-    async function apiFetch(path, opt = {}){
-      const headers = Object.assign({'Content-Type':'application/json', 'X-Init-Data': initData}, opt.headers || {});
-      const res = await fetch(API_BASE + path, Object.assign({}, opt, { headers }));
-      if(!res.ok){
-        const txt = await res.text();
-        throw new Error('API error ' + res.status + ': ' + txt);
-      }
-      return res.json();
-    }
-
-    async function loadUserData(){
-      try {
-        const data = await apiFetch('/api/user-data?userId=' + encodeURIComponent(userId));
-        if(data && data.record){
-          const rec = data.record;
-          if(rec.photos && rec.photos[0]) photoPreview.src = rec.photos[0];
-          if(rec.texts){
-            fullnameText.textContent = rec.texts.fullname || '';
-            dobText.textContent = rec.texts.dob ? formatDateForDisplay(rec.texts.dob) : '';
-            passportText.textContent = rec.texts.passport || '';
-            fullnameInput.value = rec.texts.fullname || '';
-            dobInput.value = rec.texts.dob || '';
-            passportInput.value = rec.texts.passport || '';
-            qrTextInput.value = rec.texts.qrContent || '';
-            if(rec.photos && rec.photos.length > 1){
-              qrPreview.src = rec.photos[1];
-            } else if(rec.texts && rec.texts.qrContent){
-              qrPreview.src = `https://chart.googleapis.com/chart?chs=300x300&cht=qr&chl=${encodeURIComponent(rec.texts.qrContent)}`;
-            }
-          }
-        }
-      } catch (e){
-        console.error('loadUserData error', e);
-      }
-    }
-
-    function formatDateForDisplay(d){
-      try {
-        const dd = new Date(d);
-        if(isNaN(dd)) return d;
-        const day = String(dd.getDate()).padStart(2,'0');
-        const month = String(dd.getMonth()+1).padStart(2,'0');
-        const year = dd.getFullYear();
-        return `${day}.${month}.${year}`;
-      } catch(e){ return d; }
-    }
-
-    function fileToDataUrl(file){
-      return new Promise((res, rej)=>{
-        const fr = new FileReader();
-        fr.onload = ()=> res(fr.result);
-        fr.onerror = rej;
-        fr.readAsDataURL(file);
-      });
-    }
-
-    function makeQrUrl(text, size=300){
-      return `https://chart.googleapis.com/chart?chs=${size}x${size}&cht=qr&chl=${encodeURIComponent(text)}`;
-    }
-
-    async function generateQrDataUrl(text, size=800){
-      const url = makeQrUrl(text, size);
-      const res = await fetch(url);
-      const blob = await res.blob();
-      const dataUrl = await new Promise((res2, rej2)=>{
-        const fr = new FileReader();
-        fr.onload = ()=> res2(fr.result);
-        fr.onerror = rej2;
-        fr.readAsDataURL(blob);
-      });
-      return dataUrl;
-    }
-
-    openEditorBtn.addEventListener('click', ()=> {
-      editorPanel.style.display = '';
-      window.scrollTo({ top: editorPanel.offsetTop - 30, behavior: 'smooth' });
-    });
-
-    cancelBtn.addEventListener('click', ()=> {
-      editorPanel.style.display = 'none';
-    });
-
-    openQrBtn.addEventListener('click', async ()=> {
-      try {
-        let src = qrPreview.src || '';
-        if(!src){
-          const txt = qrTextInput.value.trim();
-          if(txt) src = makeQrUrl(txt, 1000);
-        }
-        if(src){
-          qrFullscreenImg.src = src;
-          qrModalWrap.style.display = 'flex';
-        } else {
-          alert('Немає QR для показу');
-        }
-      } catch(e){
-        console.error(e);
-      }
-    });
-
-    qrCloseBtn.addEventListener('click', ()=> {
-      qrModalWrap.style.display = 'none';
-    });
-
-    qrUpload.addEventListener('change', async (e)=>{
-      const f = e.target.files && e.target.files[0];
-      if(!f) return;
-      try {
-        const durl = await fileToDataUrl(f);
-        qrPreview.src = durl;
-      } catch(err){ console.error(err); alert('Не вдалося прочитати файл'); }
-    });
-
-    photoInput.addEventListener('change', async (e)=>{
-      const f = e.target.files && e.target.files[0];
-      if(!f) return;
-      try {
-        const durl = await fileToDataUrl(f);
-        photoPreview.src = durl;
-      } catch(err){ console.error(err); alert('Не вдалося прочитати файл'); }
-    });
-
-    generateQrBtn.addEventListener('click', async ()=>{
-      const name = fullnameInput.value.trim();
-      const dob = dobInput.value;
-      const pass = passportInput.value.trim();
-      const text = `Name:${name}\nDOB:${dob}\nPassport:${pass}`;
-      qrTextInput.value = text;
-      try {
-        const dUrl = await generateQrDataUrl(text);
-        qrPreview.src = dUrl;
-      } catch(e){
-        console.warn('QR generate failed', e);
-        qrPreview.src = makeQrUrl(text, 300);
-      }
-    });
-
-    saveBtn.addEventListener('click', async ()=>{
-      saveBtn.disabled = true;
-      saveBtn.textContent = 'Збереження...';
-      try {
-        const photos = [];
-        if(photoInput.files && photoInput.files[0]){
-          const p = await fileToDataUrl(photoInput.files[0]);
-          photos.push(p);
-        } else if(photoPreview.src){
-          photos.push(photoPreview.src);
-        }
-
-        if(qrUpload.files && qrUpload.files[0]){
-          const q = await fileToDataUrl(qrUpload.files[0]);
-          photos.push(q);
-        } else if(qrPreview.src){
-          photos.push(qrPreview.src);
-        }
-
-        const texts = {
-          fullname: fullnameInput.value.trim(),
-          dob: dobInput.value || '',
-          passport: passportInput.value.trim(),
-          qrContent: qrTextInput.value.trim() || ''
-        };
-
-        const res = await fetch(API_BASE + '/api/save-data', {
-          method: 'POST',
-          headers: {'Content-Type': 'application/json', 'X-Init-Data': WebApp.initData || ''},
-          body: JSON.stringify({ userId: userId, photos, texts }),
-        });
-        if(!res.ok){
-          const txt = await res.text();
-          throw new Error('Server error: ' + txt);
-        }
-        const json = await res.json();
-        if(json && json.record){
-          const rec = json.record;
-          if(rec.photos && rec.photos[0]) photoPreview.src = rec.photos[0];
-          fullnameText.textContent = rec.texts && rec.texts.fullname || '';
-          dobText.textContent = rec.texts && rec.texts.dob ? formatDateForDisplay(rec.texts.dob) : '';
-          passportText.textContent = rec.texts && rec.texts.passport || '';
-          if(rec.photos && rec.photos[1]) qrPreview.src = rec.photos[1];
-          alert('Збережено');
-          editorPanel.style.display = 'none';
-        } else {
-          alert('Збережено (без даних відповіді)');
-        }
-      } catch (e){
-        console.error(e);
-        alert('Помилка збереження: ' + (e.message || e));
-      } finally {
-        saveBtn.disabled = false;
-        saveBtn.textContent = 'Зберегти';
-      }
-    });
-
-    // initial load
+  // load user data on startup
+  async function loadUserData(){
     try {
-      const r = await fetch(API_BASE + '/api/user-data?userId=' + encodeURIComponent(userId), { headers: {'X-Init-Data': WebApp.initData || ''}});
-      if(r.ok){
-        const data = await r.json();
-        if(data && data.record){
-          const rec = data.record;
-          if(rec.photos && rec.photos[0]) photoPreview.src = rec.photos[0];
-          if(rec.texts){
-            fullnameText.textContent = rec.texts.fullname || '';
-            dobText.textContent = rec.texts.dob ? formatDateForDisplay(rec.texts.dob) : '';
-            passportText.textContent = rec.texts.passport || '';
-            fullnameInput.value = rec.texts.fullname || '';
-            dobInput.value = rec.texts.dob || '';
-            passportInput.value = rec.texts.passport || '';
-            qrTextInput.value = rec.texts.qrContent || '';
-            if(rec.photos && rec.photos.length > 1) qrPreview.src = rec.photos[1];
-            else if(rec.texts && rec.texts.qrContent) qrPreview.src = makeQrUrl(rec.texts.qrContent,300);
+      const data = await apiFetch('/api/user-data?userId=' + encodeURIComponent(userId));
+      if(data && data.record){
+        const rec = data.record;
+        // populate UI
+        if(rec.photos && rec.photos[0]) photoPreview.src = rec.photos[0];
+        if(rec.texts){
+          fullnameText.textContent = rec.texts.fullname || '';
+          dobText.textContent = rec.texts.dob ? formatDateForDisplay(rec.texts.dob) : '';
+          passportText.textContent = rec.texts.passport || '';
+          // fill editor fields
+          fullnameInput.value = rec.texts.fullname || '';
+          dobInput.value = rec.texts.dob || '';
+          passportInput.value = rec.texts.passport || '';
+          qrTextInput.value = rec.texts.qrContent || '';
+          // preview QR image if stored
+          if(rec.photos && rec.photos.length > 1){
+            // assume second photo is QR image if present
+            qrPreview.src = rec.photos[1];
+          } else if(rec.texts && rec.texts.qrContent){
+            qrPreview.src = `https://chart.googleapis.com/chart?chs=300x300&cht=qr&chl=${encodeURIComponent(rec.texts.qrContent)}`;
           }
         }
+      }
+    } catch (e){
+      console.error('loadUserData error', e);
+      // not fatal: user may be new
+    }
+  }
+
+  // format date yyyy-mm-dd or ISO -> dd.mm.yyyy
+  function formatDateForDisplay(d){
+    try {
+      const dd = new Date(d);
+      if(isNaN(dd)) return d;
+      const day = String(dd.getDate()).padStart(2,'0');
+      const month = String(dd.getMonth()+1).padStart(2,'0');
+      const year = dd.getFullYear();
+      return `${day}.${month}.${year}`;
+    } catch(e){
+      return d;
+    }
+  }
+
+  // convert file -> dataURL
+  function fileToDataUrl(file){
+    return new Promise((res, rej)=>{
+      const fr = new FileReader();
+      fr.onload = ()=> res(fr.result);
+      fr.onerror = rej;
+      fr.readAsDataURL(file);
+    });
+  }
+
+  // Generate QR preview image URL using Google Chart API (not saved)
+  function makeQrUrl(text, size=300){
+    return `https://chart.googleapis.com/chart?chs=${size}x${size}&cht=qr&chl=${encodeURIComponent(text)}`;
+  }
+
+  // generate QR image as dataURL by fetching chart and reading blob -> dataURL
+  async function generateQrDataUrl(text, size=800){
+    const url = makeQrUrl(text, size);
+    const res = await fetch(url);
+    const blob = await res.blob();
+    const dataUrl = await new Promise((res2, rej2)=>{
+      const fr = new FileReader();
+      fr.onload = ()=> res2(fr.result);
+      fr.onerror = rej2;
+      fr.readAsDataURL(blob);
+    });
+    return dataUrl;
+  }
+
+  // show editor
+  openEditorBtn.addEventListener('click', ()=> {
+    editorPanel.style.display = '';
+    window.scrollTo({ top: editorPanel.offsetTop - 30, behavior: 'smooth' });
+  });
+
+  cancelBtn.addEventListener('click', ()=> {
+    editorPanel.style.display = 'none';
+  });
+
+  // open QR page modal
+  openQrBtn.addEventListener('click', async ()=> {
+    // show fullscreen QR; prefer saved image -> userData loaded to qrPreview
+    try {
+      // if preview has src use it, otherwise generate from inputs
+      let src = qrPreview.src || '';
+      if(!src){
+        const txt = qrTextInput.value.trim();
+        if(txt) src = makeQrUrl(txt, 1000);
+      }
+      if(src){
+        qrFullscreenImg.src = src;
+        qrModal.style.display = 'flex';
+      } else {
+        alert('Немає QR для показу');
       }
     } catch(e){
-      console.warn('initial load failed', e);
+      console.error(e);
     }
+  });
 
-  })();
-  </script>
+  qrCloseBtn.addEventListener('click', ()=> {
+    qrModal.style.display = 'none';
+  });
+
+  // when user uploads a QR file in the editor, preview it
+  qrUpload.addEventListener('change', async (e)=>{
+    const f = e.target.files && e.target.files[0];
+    if(!f) return;
+    try {
+      const durl = await fileToDataUrl(f);
+      qrPreview.src = durl;
+    } catch(err){ console.error(err); alert('Не вдалося прочитати файл'); }
+  });
+
+  // when user uploads profile photo in the editor, preview it
+  photoInput.addEventListener('change', async (e)=>{
+    const f = e.target.files && e.target.files[0];
+    if(!f) return;
+    try {
+      const durl = await fileToDataUrl(f);
+      photoPreview.src = durl;
+    } catch(err){ console.error(err); alert('Не вдалося прочитати файл'); }
+  });
+
+  // generate QR from current form values (fullname, dob, passport)
+  generateQrBtn.addEventListener('click', async ()=>{
+    const name = fullnameInput.value.trim();
+    const dob = dobInput.value;
+    const pass = passportInput.value.trim();
+    const text = `Name:${name}\nDOB:${dob}\nPassport:${pass}`;
+    qrTextInput.value = text;
+    try {
+      const dUrl = await generateQrDataUrl(text);
+      qrPreview.src = dUrl;
+    } catch(e){
+      console.warn('QR generate failed', e);
+      qrPreview.src = makeQrUrl(text, 300);
+    }
+  });
+
+  // Save: collect fields and send to backend
+  saveBtn.addEventListener('click', async ()=>{
+    saveBtn.disabled = true;
+    saveBtn.textContent = 'Збереження...';
+    try {
+      const photos = [];
+      // profile photo (single): photoPreview's current src if changed or exists
+      // prefer reading input file if present, else use image src (could be dataURL)
+      if(photoInput.files && photoInput.files[0]){
+        const p = await fileToDataUrl(photoInput.files[0]);
+        photos.push(p);
+      } else if(photoPreview.src){
+        photos.push(photoPreview.src);
+      }
+
+      // QR image: if QR was uploaded or generated preview exists
+      if(qrUpload.files && qrUpload.files[0]){
+        const q = await fileToDataUrl(qrUpload.files[0]);
+        photos.push(q);
+      } else if(qrPreview.src){
+        photos.push(qrPreview.src);
+      }
+
+      const texts = {
+        fullname: fullnameInput.value.trim(),
+        dob: dobInput.value || '',
+        passport: passportInput.value.trim(),
+        qrContent: qrTextInput.value.trim() || ''
+      };
+
+      const body = { userId: userId, photos, texts };
+
+      // POST to server with X-Init-Data header for verification
+      const res = await fetch(API_BASE + '/api/save-data', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json', 'X-Init-Data': initData},
+        body: JSON.stringify(body),
+      });
+      if(!res.ok){
+        const txt = await res.text();
+        throw new Error('Server error: ' + txt);
+      }
+      const json = await res.json();
+      // success: update UI
+      if(json && json.record){
+        const rec = json.record;
+        if(rec.photos && rec.photos[0]) photoPreview.src = rec.photos[0];
+        fullnameText.textContent = rec.texts && rec.texts.fullname || '';
+        dobText.textContent = rec.texts && rec.texts.dob ? formatDateForDisplay(rec.texts.dob) : '';
+        passportText.textContent = rec.texts && rec.texts.passport || '';
+        if(rec.photos && rec.photos[1]) qrPreview.src = rec.photos[1];
+        alert('Збережено');
+        editorPanel.style.display = 'none';
+      } else {
+        alert('Збережено (без даних відповіді)');
+      }
+    } catch (e){
+      console.error(e);
+      alert('Помилка збереження: ' + (e.message || e));
+    } finally {
+      saveBtn.disabled = false;
+      saveBtn.textContent = 'Зберегти';
+    }
+  });
+
+  // initial load
+  await loadUserData();
+
+})();
+</script>
 </body>
 </html>
