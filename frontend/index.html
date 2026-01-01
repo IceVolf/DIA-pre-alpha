@@ -1,0 +1,389 @@
+<!doctype html>
+<html lang="uk">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <title>Mini Telegram — Документи</title>
+  <style>
+    :root{ --primary:#0b84ff; --muted:#6b7280; --card:#fff; --bg:#f6f7f9 }
+    *{box-sizing:border-box}
+    body{ margin:0; font-family:Inter,system-ui,Arial; background:var(--bg); color:#111; -webkit-font-smoothing:antialiased;}
+    .container{ max-width:980px; margin:18px auto; padding:18px; }
+    header h1{ margin:0 0 12px; font-size:20px; }
+    .card{ background:var(--card); border-radius:12px; padding:14px; box-shadow:0 6px 18px rgba(0,0,0,0.06); }
+    .row{ display:flex; gap:12px; align-items:start; }
+    .avatar{ width:120px; height:150px; background:#eee; border-radius:8px; overflow:hidden; display:flex; align-items:center; justify-content:center;}
+    .avatar img{ width:100%; height:100%; object-fit:cover; }
+    label{ display:block; margin-top:8px; font-size:13px; color:var(--muted); }
+    input[type="text"], input[type="date"], textarea { width:100%; padding:8px; border-radius:8px; border:1px solid #e6e6e6; margin-top:6px; font-size:14px; }
+    .btn{ display:inline-block; padding:8px 12px; border-radius:8px; background:var(--primary); color:white; border:0; cursor:pointer; font-weight:700; margin-top:10px; }
+    .btn.secondary{ background:#ddd; color:#111; }
+    .notice{ color:#b0413e; margin:12px 0; }
+    .small{ font-size:13px; color:var(--muted); }
+    .qr-preview{ width:160px; height:160px; background:#fff; border-radius:8px; display:flex; align-items:center; justify-content:center; border:1px solid #eee; overflow:hidden; }
+    .flex{ display:flex; gap:12px; align-items:center; }
+    .spaced{ margin-top:12px; }
+    /* responsive tweaks for phone */
+    @media (max-width:520px){
+      .row{ flex-direction:row; gap:10px;}
+      .container{ padding:12px; }
+      .avatar{ width:96px; height:120px; }
+      .qr-preview{ width:120px; height:120px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header><h1>Документи</h1></header>
+
+    <div id="error" class="notice" style="display:none">Run from Telegram.</div>
+
+    <section id="main-ui" style="display:none">
+      <div class="card" id="doc-card">
+        <div class="row">
+          <div class="avatar">
+            <img id="photo-preview" src="https://via.placeholder.com/120x150?text=Фото" alt="Фото">
+          </div>
+
+          <div style="flex:1">
+            <div class="small">Дата народження:</div>
+            <div id="dob-text" style="font-weight:700">—</div>
+
+            <div style="height:8px"></div>
+
+            <div class="small">Паспорт:</div>
+            <div id="passport-text" style="font-weight:700">—</div>
+          </div>
+        </div>
+
+        <div class="spaced">
+          <div class="small">Ім'я</div>
+          <h2 id="fullname-text" style="margin:6px 0 0">—</h2>
+        </div>
+
+        <div class="spaced">
+          <button id="open-editor" class="btn">Редагувати документ</button>
+          <button id="open-qr" class="btn secondary" style="margin-left:8px">Показати QR</button>
+        </div>
+      </div>
+
+      <div style="height:18px"></div>
+
+      <!-- Editor panel -->
+      <div id="editor" style="display:none">
+        <div class="card">
+          <h3>Редагувати дані</h3>
+
+          <label>Завантажити фото</label>
+          <input id="photo-input" type="file" accept="image/*" />
+
+          <label>Повне ім'я</label>
+          <input id="fullname-input" type="text" placeholder="Прізвище Ім'я По батькові" />
+
+          <label>Дата народження</label>
+          <input id="dob-input" type="date" />
+
+          <label>Номер паспорта</label>
+          <input id="passport-input" type="text" placeholder="123456789" />
+
+          <hr style="margin-top:12px"/>
+
+          <label>QR: текст/URL (або завантажити фото QR)</label>
+          <input id="qr-text-input" type="text" placeholder="https://..." />
+          <div class="flex spaced">
+            <input id="qr-upload" type="file" accept="image/*" />
+            <button id="generate-qr-from-data" class="btn secondary">Згенерувати QR з даних</button>
+          </div>
+
+          <div style="margin-top:12px">
+            <div class="small">Попередній перегляд QR</div>
+            <div class="qr-preview" style="margin-top:8px">
+              <img id="qr-preview" src="" style="max-width:100%; max-height:100%; object-fit:contain" alt="QR preview">
+            </div>
+          </div>
+
+          <div style="margin-top:12px">
+            <button id="save-btn" class="btn">Зберегти</button>
+            <button id="cancel-btn" class="btn secondary">Скасувати</button>
+          </div>
+        </div>
+      </div>
+
+      <div style="height:10px"></div>
+
+      <!-- QR fullscreen modal -->
+      <div id="qr-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.9); align-items:center; justify-content:center; z-index:9999;">
+        <div style="position:relative; width:100%; max-width:920px; padding:24px">
+          <button id="qr-close" class="btn secondary" style="position:absolute; right:18px; top:18px; z-index:1010">Закрити</button>
+          <img id="qr-fullscreen" src="" alt="QR large" style="width:100%; height:auto; max-height:calc(100vh - 120px); object-fit:contain; display:block; margin:0 auto; border-radius:12px; background:#fff" />
+        </div>
+      </div>
+
+    </section>
+  </div>
+
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <script>
+  /*
+    Combined frontend logic:
+    - Uses Telegram.WebApp.initDataUnsafe.user for userId and WebApp.initData as initData header
+    - On load: GET /api/user-data?userId=<id> with X-Init-Data header
+    - Save: POST /api/save-data with { userId, photos, texts } and X-Init-Data header
+    - Photos converted to base64 on client
+    - QR: can be generated (Google Chart) and converted to dataURL before saving so it's stored like an image
+  */
+
+  (async function(){
+    // Set backend origin. Replace with your deployed backend URL (no trailing slash).
+    const API_BASE = (location.hostname === 'localhost' || location.hostname === '127.0.0.1') ? 'http://localhost:4000' : 'https://YOUR_BACKEND_URL';
+
+    // DOM
+    const errEl = document.getElementById('error');
+    const mainUi = document.getElementById('main-ui');
+
+    const openEditorBtn = document.getElementById('open-editor');
+    const openQrBtn = document.getElementById('open-qr');
+    const editorPanel = document.getElementById('editor');
+    const photoInput = document.getElementById('photo-input');
+    const fullnameInput = document.getElementById('fullname-input');
+    const dobInput = document.getElementById('dob-input');
+    const passportInput = document.getElementById('passport-input');
+    const qrTextInput = document.getElementById('qr-text-input');
+    const qrUpload = document.getElementById('qr-upload');
+    const qrPreview = document.getElementById('qr-preview');
+    const generateQrBtn = document.getElementById('generate-qr-from-data');
+    const saveBtn = document.getElementById('save-btn');
+    const cancelBtn = document.getElementById('cancel-btn');
+
+    const photoPreview = document.getElementById('photo-preview');
+    const fullnameText = document.getElementById('fullname-text');
+    const dobText = document.getElementById('dob-text');
+    const passportText = document.getElementById('passport-text');
+
+    const qrModal = document.getElementById('qr-modal');
+    const qrFullscreenImg = document.getElementById('qr-fullscreen');
+    const qrCloseBtn = document.getElementById('qr-close');
+
+    // Telegram
+    if(!window.Telegram || !window.Telegram.WebApp){
+      errEl.style.display = 'block';
+      errEl.textContent = 'Run from Telegram.';
+      return;
+    }
+
+    const WebApp = window.Telegram.WebApp;
+    const initData = WebApp.initData || '';
+    const userUnsafe = WebApp.initDataUnsafe && WebApp.initDataUnsafe.user;
+    const userId = userUnsafe && userUnsafe.id;
+
+    if(!userId){
+      errEl.style.display = 'block';
+      errEl.textContent = 'Run from Telegram.';
+      return;
+    }
+
+    mainUi.style.display = '';
+
+    async function apiFetch(path, opt = {}){
+      const headers = Object.assign({'Content-Type':'application/json', 'X-Init-Data': initData}, opt.headers || {});
+      const res = await fetch(API_BASE + path, Object.assign({}, opt, { headers }));
+      if(!res.ok){
+        const txt = await res.text();
+        throw new Error('API error ' + res.status + ': ' + txt);
+      }
+      return res.json();
+    }
+
+    async function loadUserData(){
+      try {
+        const data = await apiFetch('/api/user-data?userId=' + encodeURIComponent(userId));
+        if(data && data.record){
+          const rec = data.record;
+          if(rec.photos && rec.photos[0]) photoPreview.src = rec.photos[0];
+          if(rec.texts){
+            fullnameText.textContent = rec.texts.fullname || '';
+            dobText.textContent = rec.texts.dob ? formatDateForDisplay(rec.texts.dob) : '';
+            passportText.textContent = rec.texts.passport || '';
+            fullnameInput.value = rec.texts.fullname || '';
+            dobInput.value = rec.texts.dob || '';
+            passportInput.value = rec.texts.passport || '';
+            qrTextInput.value = rec.texts.qrContent || '';
+            if(rec.photos && rec.photos.length > 1){
+              qrPreview.src = rec.photos[1];
+            } else if(rec.texts && rec.texts.qrContent){
+              qrPreview.src = `https://chart.googleapis.com/chart?chs=300x300&cht=qr&chl=${encodeURIComponent(rec.texts.qrContent)}`;
+            }
+          }
+        }
+      } catch (e){
+        console.error('loadUserData error', e);
+      }
+    }
+
+    function formatDateForDisplay(d){
+      try {
+        const dd = new Date(d);
+        if(isNaN(dd)) return d;
+        const day = String(dd.getDate()).padStart(2,'0');
+        const month = String(dd.getMonth()+1).padStart(2,'0');
+        const year = dd.getFullYear();
+        return `${day}.${month}.${year}`;
+      } catch(e){ return d; }
+    }
+
+    function fileToDataUrl(file){
+      return new Promise((res, rej)=>{
+        const fr = new FileReader();
+        fr.onload = ()=> res(fr.result);
+        fr.onerror = rej;
+        fr.readAsDataURL(file);
+      });
+    }
+
+    function makeQrUrl(text, size=300){
+      return `https://chart.googleapis.com/chart?chs=${size}x${size}&cht=qr&chl=${encodeURIComponent(text)}`;
+    }
+
+    async function generateQrDataUrl(text, size=800){
+      const url = makeQrUrl(text, size);
+      const res = await fetch(url);
+      const blob = await res.blob();
+      const dataUrl = await new Promise((res2, rej2)=>{
+        const fr = new FileReader();
+        fr.onload = ()=> res2(fr.result);
+        fr.onerror = rej2;
+        fr.readAsDataURL(blob);
+      });
+      return dataUrl;
+    }
+
+    openEditorBtn.addEventListener('click', ()=> {
+      editorPanel.style.display = '';
+      window.scrollTo({ top: editorPanel.offsetTop - 30, behavior: 'smooth' });
+    });
+
+    cancelBtn.addEventListener('click', ()=> {
+      editorPanel.style.display = 'none';
+    });
+
+    openQrBtn.addEventListener('click', async ()=> {
+      try {
+        let src = qrPreview.src || '';
+        if(!src){
+          const txt = qrTextInput.value.trim();
+          if(txt) src = makeQrUrl(txt, 1000);
+        }
+        if(src){
+          qrFullscreenImg.src = src;
+          qrModal.style.display = 'flex';
+        } else {
+          alert('Немає QR для показу');
+        }
+      } catch(e){
+        console.error(e);
+      }
+    });
+
+    qrCloseBtn.addEventListener('click', ()=> {
+      qrModal.style.display = 'none';
+    });
+
+    qrUpload.addEventListener('change', async (e)=>{
+      const f = e.target.files && e.target.files[0];
+      if(!f) return;
+      try {
+        const durl = await fileToDataUrl(f);
+        qrPreview.src = durl;
+      } catch(err){ console.error(err); alert('Не вдалося прочитати файл'); }
+    });
+
+    photoInput.addEventListener('change', async (e)=>{
+      const f = e.target.files && e.target.files[0];
+      if(!f) return;
+      try {
+        const durl = await fileToDataUrl(f);
+        photoPreview.src = durl;
+      } catch(err){ console.error(err); alert('Не вдалося прочитати файл'); }
+    });
+
+    generateQrBtn.addEventListener('click', async ()=>{
+      const name = fullnameInput.value.trim();
+      const dob = dobInput.value;
+      const pass = passportInput.value.trim();
+      const text = `Name:${name}\nDOB:${dob}\nPassport:${pass}`;
+      qrTextInput.value = text;
+      try {
+        const dUrl = await generateQrDataUrl(text);
+        qrPreview.src = dUrl;
+      } catch(e){
+        console.warn('QR generate failed', e);
+        qrPreview.src = makeQrUrl(text, 300);
+      }
+    });
+
+    saveBtn.addEventListener('click', async ()=>{
+      saveBtn.disabled = true;
+      saveBtn.textContent = 'Збереження...';
+      try {
+        const photos = [];
+        if(photoInput.files && photoInput.files[0]){
+          const p = await fileToDataUrl(photoInput.files[0]);
+          photos.push(p);
+        } else if(photoPreview.src){
+          photos.push(photoPreview.src);
+        }
+
+        if(qrUpload.files && qrUpload.files[0]){
+          const q = await fileToDataUrl(qrUpload.files[0]);
+          photos.push(q);
+        } else if(qrPreview.src){
+          photos.push(qrPreview.src);
+        }
+
+        const texts = {
+          fullname: fullnameInput.value.trim(),
+          dob: dobInput.value || '',
+          passport: passportInput.value.trim(),
+          qrContent: qrTextInput.value.trim() || ''
+        };
+
+        const body = { userId: userId, photos, texts };
+
+        const res = await fetch(API_BASE + '/api/save-data', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json', 'X-Init-Data': initData},
+          body: JSON.stringify(body),
+        });
+        if(!res.ok){
+          const txt = await res.text();
+          throw new Error('Server error: ' + txt);
+        }
+        const json = await res.json();
+        if(json && json.record){
+          const rec = json.record;
+          if(rec.photos && rec.photos[0]) photoPreview.src = rec.photos[0];
+          fullnameText.textContent = rec.texts && rec.texts.fullname || '';
+          dobText.textContent = rec.texts && rec.texts.dob ? formatDateForDisplay(rec.texts.dob) : '';
+          passportText.textContent = rec.texts && rec.texts.passport || '';
+          if(rec.photos && rec.photos[1]) qrPreview.src = rec.photos[1];
+          alert('Збережено');
+          editorPanel.style.display = 'none';
+        } else {
+          alert('Збережено (без даних відповіді)');
+        }
+      } catch (e){
+        console.error(e);
+        alert('Помилка збереження: ' + (e.message || e));
+      } finally {
+        saveBtn.disabled = false;
+        saveBtn.textContent = 'Зберегти';
+      }
+    });
+
+    // initial load
+    await loadUserData();
+
+  })();
+  </script>
+</body>
+</html>
